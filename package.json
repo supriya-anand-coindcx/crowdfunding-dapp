@@ -1,6 +1,5 @@
 {
   "name": "crowdfunding-dapp",
-  "type": "module",
   "devDependencies": {
     "@nomicfoundation/hardhat-toolbox": "^2.0.2",
     "@nomiclabs/hardhat-ethers": "^2.2.2",
