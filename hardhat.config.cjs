@@ -1,6 +1,6 @@
 require('@nomicfoundation/hardhat-toolbox');
+require("@nomiclabs/hardhat-ethers");
 
-require('@nomiclabs/hardhat-waffle');
 const dotenv = require('dotenv');
 dotenv.config();
 
