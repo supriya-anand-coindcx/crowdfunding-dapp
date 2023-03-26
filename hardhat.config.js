@@ -1,11 +1,9 @@
-require('@nomicfoundation/hardhat-toolbox');
-
 require('@nomiclabs/hardhat-waffle');
 const dotenv = require('dotenv');
 dotenv.config();
 
 module.exports = {
-  solidity: '0.8.10',
+  solidity: '0.8.9',
   networks: {
     hardhat: {},
     mainnet: {
