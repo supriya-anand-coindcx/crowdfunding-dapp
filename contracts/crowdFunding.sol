@@ -42,17 +42,19 @@ contract CrowdFunding {
         uint256 fundingGoal;
         uint256 totalNFTs;
         uint256 deadline;
+        address[] investorArr; //a shadow array to maintain the list of investors
         mapping(address => uint256) investors;
         uint256 amountCollected;
     }
 
-    event ProjectCreated(uint256 projectId, uint256 goal, uint256 deadline, uint256 totalNFTs, string name);
+    event ProjectCreated(uint256 projectId, string name, uint256 goal, uint256 deadline );
     event InvestmentMade(address indexed investor, uint256 indexed projectId, uint256 amount);
     event ProfitClaimed(address indexed investor, uint256 indexed projectId, uint256 profit);
 
 
     mapping(uint256 => Project) public projects;
     mapping(uint256 => mapping(address => uint256)) public receiptToken; 
+    //TO CONFIRM: it is mapped to project=>map(address => amount)
     ReceiptToken public receiptTokenContract;
 
     uint256 public numberOfProjects = 0;
@@ -71,16 +73,21 @@ contract CrowdFunding {
         project.deadline = _deadline;
         project.amountCollected = 0;
         project.id = numberOfProjects;
+        //tto initiate investorArray
+        emit ProjectCreated(numberOfProjects, _name, _fundingGoal, _deadline);
 
         return numberOfProjects - 1;
     }
 
     function donateToProject(uint256 _id) public payable {
+        //TO DISCUSS: we might need to capture the time when the donation was made in order to process the time till which the funds can be withdrawn 
         uint256 amount = msg.value;
 
         Project storage project = projects[_id];
 
         project.investors[msg.sender] = amount;
+        project.investorArr.push(msg.sender);
+
 
         (bool sent,) = payable(address(this)).call{value: amount}("");
         require(sent, "Transaction unsuccessful");
@@ -92,6 +99,8 @@ contract CrowdFunding {
 
         // Update receiptToken mapping
         receiptToken[_id][msg.sender] += amount;
+
+        //TO DISCUSS: whether to emit the receipt token or to return the RECEIPT TOKEN?
     }
 
     
@@ -105,12 +114,14 @@ contract CrowdFunding {
         return allProjects;
     }
 
+
     function getProjectBalance(uint256 _projectId) public view returns (uint256) {
         require(_projectId < numberOfProjects, "Invalid project ID");
 
         Project storage project = projects[_projectId];
         return project.amountCollected;
     }
+
 
     function getTotalBalance() public view returns (uint256 totalBalance) {
         for (uint256 i = 0; i < numberOfProjects; i++) {
@@ -127,18 +138,43 @@ contract CrowdFunding {
         require(_amount <= investorContribution, "Cannot claim more than contributed");
 
         uint256 totalAmount = project.amountCollected;
-        uint256 projectBalance = address(this).balance;
-        uint256 profit = projectBalance * _amount / totalAmount;
+        uint fundingGoal = project.fundingGoal;
+        uint256 profit_multiplier = totalAmount/fundingGoal;
+        uint256 profit = profit_multiplier * _amount / totalAmount; //TO CONFIRM THIS FORMULA
 
         require(profit > 0, "No profit available to claim");
-        receiptToken[_projectId][msg.sender] -= _amount;
+        receiptToken[_projectId][msg.sender] -= _amount; 
+
+        uint256 totalTransferAmount = _amount+profit;
 
         FundingToken fundingTokenContract = FundingToken(address(this));
-        fundingTokenContract.transfer(msg.sender, profit);
+        fundingTokenContract.transfer(msg.sender, totalTransferAmount);
 
-        receiptTokenContract = ReceiptToken(address(this));
+        project.amountCollected -= totalTransferAmount;
+
+        receiptTokenContract = ReceiptToken(address(this)); //TO BE VERIFIED
         receiptTokenContract.burn(msg.sender, _projectId, _amount);
     }
+    
 
+    function withdraw(uint256 _projectId) public {
+        
+        Project storage project = projects[_projectId];
+        uint256 investorContribution = receiptToken[_projectId][msg.sender];
+        require(investorContribution > 0, "No contribution made by the investor");
+       //TO CORRECT: 
+        require(block.timestamp < (projects[numberOfProjects - 1].deadline + 1 days), "Withdrawal not allowed yet, you need to wait 24 hours before withdrawl");
+        //TO DISCUSS: whether to put a check to see if the deadline is not over?
+        require(project.amountCollected > 0, "No funds available for withdrawal");
+
+        FundingToken fundingTokenContract = FundingToken(address(this));
+        fundingTokenContract.transfer(msg.sender, investorContribution);
+
+        project.amountCollected -= investorContribution;
+
+        receiptToken[_projectId][msg.sender] = 0;
+    }
+
+    //TO ADD: RefundAll function
 
 }
