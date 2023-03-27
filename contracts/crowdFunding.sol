@@ -196,8 +196,9 @@ contract CrowdFunding {
         uint256 investorContribution = receiptToken[_projectId][msg.sender];
         require(investorContribution > 0, "No contribution made by the investor");
        //TO CORRECT: 
-        require(block.timestamp < (projects[numberOfProjects - 1].deadline + 1 minutes), "Withdrawal not allowed yet, you need to wait 1 minute before withdrawl");
+        require(block.timestamp < (projects[_projectId].deadline + 1 minutes), "Withdrawal not allowed yet, you need to wait 1 minute before withdrawl");
         //TO DISCUSS: whether to put a check to see if the deadline is not over?
+        
         require(project.amountCollected > 0, "No funds available for withdrawal");
 
         FundingToken fundingTokenContract = FundingToken(address(this));
@@ -208,6 +209,6 @@ contract CrowdFunding {
         receiptToken[_projectId][msg.sender] = 0;
         receiptTokenContract = ReceiptToken(address(this)); // DOUBT TO BE VERIFIED
         receiptTokenContract.burn(msg.sender, _projectId, investorContribution);
-        
+
     }
 }
