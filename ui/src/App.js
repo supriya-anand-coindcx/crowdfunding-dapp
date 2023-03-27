@@ -36,9 +36,7 @@ function App() {
     console.log("init contact");
     let tempprovider = new ethers.providers.Web3Provider(window.ethereum);
     setProvider(tempprovider);
-    // provider = new ethers.providers.JsonRpcProvider({url:'http://127.0.0.1:8545/'});
     let tempsigner = tempprovider.getSigner();
-    console.log(tempsigner);
     setSigner(tempsigner);
     let contractAddress = "0x1330DbB5F0D790e06316A456949535722740c54d";
     let abi = [
@@ -233,14 +231,8 @@ function App() {
         "type": "function"
       }
     ];
-    let tempcontract = new ethers.Contract(contractAddress, abi, tempsigner);
-    setContract(new ethers.Contract(contractAddress, abi, tempcontract));
-    console.log(tempcontract);
-
-    // const projectList = await contract.getAllProjects();
-    const nop = await contract.numberOfProjects();
-
-    console.log("prokecg ---> ", "asda ", nop, "asd");
+    let tempcontract = new ethers.Contract(contractAddress, abi, tempsigner );
+    setContract(tempcontract);
   }
 
   const connectToMM = (event) => {
@@ -262,8 +254,13 @@ function App() {
     getWalletAddress();
   };
 
-  const ss = (event) => {
+  const ss = async (event) => {
+    console.log(provider);
     console.log(signer);
+    console.log(contract);
+
+    const nop = await contract.numberOfProjects();
+    console.log("prokecg ---> ", "asda ", nop, "asd");
   };
 
   return (
