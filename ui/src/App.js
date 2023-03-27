@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { ethers } from "ethers";
+import BigNumber from "bignumber.js";
 
 function App() {
   const [projects, setProjects] = useState([]);
@@ -8,8 +9,7 @@ function App() {
   const [contract, setContract] = useState({});
   const [signer, setSigner] = useState({});
   const [newProject, setNewProject] = useState({
-    title: "",
-    description: "",
+    name: "",
     fundingGoal: "",
     deadline: "",
   });
@@ -25,8 +25,7 @@ function App() {
     event.preventDefault();
     setProjects([...projects, newProject]);
     setNewProject({
-      title: "",
-      description: "",
+      name: "",
       fundingGoal: "",
       deadline: "",
     });
@@ -237,12 +236,6 @@ function App() {
 
   const connectToMM = (event) => {
     initContract();
-    projects.push({
-      title: "asda",
-      description: "asd",
-      fundingGoal: "asd",
-      deadline: "asd",
-    });
     async function getWalletAddress() {
       if (window.ethereum) {
         const accounts = await window.ethereum.request({
@@ -259,8 +252,16 @@ function App() {
     console.log(signer);
     console.log(contract);
 
-    const nop = await contract.numberOfProjects();
-    console.log("prokecg ---> ", "asda ", nop, "asd");
+    let nop = await contract.numberOfProjects();
+    for (let i = 0; i < nop; i++) {
+      const p = await contract.projects(i);
+      const newproject = {
+        name: p.name,
+        fundingGoal: BigNumber(p['fundingGoal']._hex).toString(),
+        deadline: BigNumber(p['deadline']._hex).toString(),
+      };
+      setProjects([...projects, newproject]);
+    };
   };
 
   return (
@@ -321,8 +322,7 @@ function App() {
       <h1>All Projects</h1>
       {projects.map((project, index) => (
         <div key={index}>
-          <h2>{project.title}</h2>
-          <p>{project.description}</p>
+          <h2>Name: {project.name}</h2>
           <p>Funding Goal: ${project.fundingGoal}</p>
           <p>Deadline: {project.deadline}</p>
         </div>
