@@ -21,16 +21,6 @@ function App() {
     });
   };
 
-  const handleSubmit = (event) => {
-    event.preventDefault();
-    setProjects([...projects, newProject]);
-    setNewProject({
-      name: "",
-      fundingGoal: "",
-      deadline: "",
-    });
-  };
-
   const initContract = async () => {
     console.log("init contact");
     let tempprovider = new ethers.providers.Web3Provider(window.ethereum);
@@ -248,11 +238,8 @@ function App() {
   };
 
   const ss = async (event) => {
-    console.log(provider);
-    console.log(signer);
-    console.log(contract);
-
     let nop = await contract.numberOfProjects();
+    const pp = [];
     for (let i = 0; i < nop; i++) {
       const p = await contract.projects(i);
       const newproject = {
@@ -260,8 +247,23 @@ function App() {
         fundingGoal: BigNumber(p['fundingGoal']._hex).toString(),
         deadline: BigNumber(p['deadline']._hex).toString(),
       };
-      setProjects([...projects, newproject]);
+      pp.push(newproject);
     };
+    setProjects([...projects, ...pp]);
+  };
+
+  const createProject = async (event) => {
+    event.preventDefault();
+    setProjects([...projects, newProject]);
+    setNewProject({
+      name: "",
+      fundingGoal: "",
+      deadline: "",
+    });
+    let deadline = new Date(newProject.deadline);
+    deadline =  Math.floor(deadline.getTime() / 1000);
+    const p = await contract.createProject(newProject.name, newProject.fundingGoal, 1, deadline);
+    console.log(p);
   };
 
   return (
@@ -274,22 +276,13 @@ function App() {
         <button onClick={ss}>show signer</button>
 
       <h1>Create a Project</h1>
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={createProject}>
         <label>
-          Title:
+          Name:
           <input
             type="text"
-            name="title"
-            value={newProject.title}
-            onChange={handleInputChange}
-          />
-        </label>
-        <br />
-        <label>
-          Description:
-          <textarea
-            name="description"
-            value={newProject.description}
+            name="name"
+            value={newProject.name}
             onChange={handleInputChange}
           />
         </label>
