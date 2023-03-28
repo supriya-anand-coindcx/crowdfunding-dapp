@@ -93,34 +93,32 @@ export const Home = () => {
         });
         let deadline = new Date(newProject.deadline);
         deadline = Math.floor(deadline.getTime() / 1000);
-        const p = await contractERC1155.createProject(newProject.name,ethers.utils.parseEther(newProject.fundingGoal), deadline);
+        const p = await contractERC1155.createProject(newProject.name,newProject.fundingGoal, deadline);
         console.log(p);
     };
 
     const contributeToProject = async (event) => {
-        const ww = new ethers.Wallet("0x6a23f229f0b683f050b9c8ce180abc8c24195e9bcbc6851457f8bf076ed5ae44", provider);
         event.preventDefault();
         setContributeToProjectObj(contributeToProjectObj);
         // setContributeToProjectObj({
         //     id: "",
         //     amount: "",
         // });
-        console.log(ww);
-        const allo = await contractERC20.allowance(ww.address   , process.env.REACT_APP_ERC1155_ADDRESS);
+        const allo = await contractERC20.allowance(walletAddress, process.env.REACT_APP_ERC1155_ADDRESS);
         console.log(BigNumber(allo._hex).toString());
-        const p = await contractERC1155.connect(ww).contribute(contributeToProjectObj.id, contributeToProjectObj.amount);
+        const p = await contractERC1155.contribute(contributeToProjectObj.id, contributeToProjectObj.amount);
         console.log(p);
     };
 
-    const aprroveMoney = async (event) => {
-        const p = await contractERC20.approve(process.env.REACT_APP_ERC1155_ADDRESS, 10000);
+    const aprroveMoney = async (event) => { 
+        const p = await contractERC20.approve(process.env.REACT_APP_ERC1155_ADDRESS, 4000);
         const p2 = await contractERC20.balanceOf(walletAddress);
-        // const p = await contractERC20.allowance(walletAddress, process.env.REACT_APP_ERC1155_ADDRESS);
-        console.log(p, BigNumber(p2._hex).toString());
+        const p3 = await contractERC20.allowance(walletAddress, process.env.REACT_APP_ERC1155_ADDRESS);
+        console.log(p, BigNumber(p2._hex).toString(), p3,  BigNumber(p3._hex).toString());
     }
 
     const transfererc20 = async (event) => {
-        const p = await contractERC20.transfer(walletAddress, 10000);
+        const p = await contractERC20.transfer(walletAddress, 5000);
         console.log(p);
     }
 
