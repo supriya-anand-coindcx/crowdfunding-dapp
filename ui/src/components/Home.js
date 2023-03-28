@@ -92,7 +92,7 @@ export const Home = () => {
         });
         let deadline = new Date(newProject.deadline);
         deadline = Math.floor(deadline.getTime() / 1000);
-        const p = await contractERC1155.createProject(newProject.name, newProject.fundingGoal, deadline);
+        const p = await contractERC1155.createProject(newProject.name,ethers.utils.parseEther(newProject.fundingGoal), deadline);
         console.log(p);
     };
 
@@ -103,9 +103,14 @@ export const Home = () => {
             id: "",
             amount: "",
         });
-        const p = await contractERC1155.createProject(contributeToProjectObj.id, contributeToProjectObj.amount);
+        const p = await contractERC1155.contribute(contributeToProjectObj.id, ethers.utils.parseEther(contributeToProjectObj.amount));
         console.log(p);
     };
+
+    const aprroveMoney = async (event) => {
+        const p = await contractERC20.approve(process.env.REACT_APP_ERC1155_ADDRESS, 1000000000);
+        console.log(p);
+    }
 
     return (
         <div>
@@ -115,6 +120,7 @@ export const Home = () => {
                 <button onClick={connectToMM}>Connect to Metamask</button>
             )}
             <button onClick={ss}>show signer</button>
+            <button onClick={aprroveMoney}>approve money</button>
 
             <table>
                 <td>
