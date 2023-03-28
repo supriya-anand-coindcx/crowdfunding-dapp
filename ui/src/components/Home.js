@@ -1,10 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { ethers } from "ethers";
 import BigNumber from "bignumber.js";
 import * as Constants from "../constants/index";
 
 export const Home = () => {
     const [projects, setProjects] = useState([]);
+    const [investment, setInvestment] = useState([]);
     const [contributeToProjectObj, setContributeToProjectObj] = useState({
         id:"",
         amount: ""
@@ -74,9 +75,11 @@ export const Home = () => {
     };
 
     const ss = async (event) => {
+        // GET PROJECTS and INVESTMENTS
         console.log(contractERC1155);
         let nop = await contractERC1155.projectId();
         const pp = [];
+        const inv = [];
         for (let i = 0; i < nop; i++) {
             const p = await contractERC1155.projects(i);
             const newproject = {
@@ -85,10 +88,27 @@ export const Home = () => {
                 deadline: BigNumber(p['deadline']._hex).toString(),
             };
             pp.push(newproject);
+
+            const invv = await contractERC1155.getInvestment(i);
+            // console.log(p, " -> " , invv);
+            const newinv = {
+                amount: BigNumber(invv['0']._hex).toString(),
+                claimed: invv['2'].toString(),
+                active: invv['3'].toString()
+            }
+            // console.log(newinv);
+            if(BigNumber(invv['0']._hex).toString()!=0) inv.push(newinv);
         };
-        setProjects([...projects, ...pp]);
-        console.log(projects);
+        await setProjects([...projects, ...pp]);
+        console.log(inv);
+        await setInvestment(inv);
+        console.log(investment);
     };
+
+    useEffect(() => {
+        setInvestment(investment);
+      }, [investment]);
+
 
     const createProject = async (event) => {
         event.preventDefault();
@@ -218,14 +238,29 @@ export const Home = () => {
                     </td>
             </table>
             <hr />
-            <h1>All Projects</h1>
-            {projects.map((project, index) => (
-                <div key={index}>
-                    <h2>Name: {project.name}</h2>
-                    <p>Funding Goal: ${project.fundingGoal}</p>
-                    <p>Deadline: {project.deadline}</p>
-                </div>
-            ))}
+            <table>
+                <td>
+                    <h1>All Projects:</h1>
+                    {projects.map((project, index) => (
+                        <div key={index}>
+                            <h2>Name: {project.name}</h2>
+                            <p>Funding Goal: ${project.fundingGoal}</p>
+                            <p>Deadline: {project.deadline}</p>
+                        </div>
+                    ))}
+                </td>
+                <td>
+                    <h1>All Investments:</h1>
+                    <h2>investment</h2>
+                    {investment.map((inv, index) => (
+                        <div key={index}>
+                            <h2>Amount: {inv.amount}</h2>
+                            <p>Claimed: {inv.claimed}</p>
+                            <p>Active: {inv.active}</p>
+                        </div>
+                    ))}
+                </td>
+            </table>
         </div>
     );
 }
