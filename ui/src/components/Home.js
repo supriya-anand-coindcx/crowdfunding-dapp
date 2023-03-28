@@ -1,9 +1,14 @@
 import React, { useState } from "react";
 import { ethers } from "ethers";
 import BigNumber from "bignumber.js";
+import * as Constants from "../constants/index";
 
 export const Home = () => {
     const [projects, setProjects] = useState([]);
+    const [contributeToProjectObj, setContributeToProjectObj] = useState({
+        id:"",
+        amount: ""
+    });
     const [walletAddress, setWalletAddress] = useState("");
     const [provider, setProvider] = useState({});
     const [contract, setContract] = useState({});
@@ -14,11 +19,19 @@ export const Home = () => {
         deadline: "",
     });
 
+
     const handleInputChange = (event) => {
         setNewProject({
             ...newProject,
             [event.target.name]: event.target.value,
         });
+    };
+
+    const handleInputChangeOfContribute = (event) => {
+        setContributeToProjectObj({
+            ...contributeToProjectObj,
+            [event.target.name]: event.target.value,
+        })
     };
 
     const initContract = async () => {
@@ -28,198 +41,7 @@ export const Home = () => {
         let tempsigner = tempprovider.getSigner();
         setSigner(tempsigner);
         let contractAddress = "0x1330DbB5F0D790e06316A456949535722740c54d";
-        let abi = [
-            {
-                "inputs": [
-                    {
-                        "internalType": "string",
-                        "name": "_name",
-                        "type": "string"
-                    },
-                    {
-                        "internalType": "uint256",
-                        "name": "_fundingGoal",
-                        "type": "uint256"
-                    },
-                    {
-                        "internalType": "uint256",
-                        "name": "_totalNFTs",
-                        "type": "uint256"
-                    },
-                    {
-                        "internalType": "uint256",
-                        "name": "_deadline",
-                        "type": "uint256"
-                    }
-                ],
-                "name": "createProject",
-                "outputs": [
-                    {
-                        "internalType": "uint256",
-                        "name": "",
-                        "type": "uint256"
-                    }
-                ],
-                "stateMutability": "nonpayable",
-                "type": "function"
-            },
-            {
-                "anonymous": false,
-                "inputs": [
-                    {
-                        "indexed": true,
-                        "internalType": "address",
-                        "name": "investor",
-                        "type": "address"
-                    },
-                    {
-                        "indexed": true,
-                        "internalType": "uint256",
-                        "name": "projectId",
-                        "type": "uint256"
-                    },
-                    {
-                        "indexed": false,
-                        "internalType": "uint256",
-                        "name": "amount",
-                        "type": "uint256"
-                    }
-                ],
-                "name": "InvestmentMade",
-                "type": "event"
-            },
-            {
-                "anonymous": false,
-                "inputs": [
-                    {
-                        "indexed": true,
-                        "internalType": "address",
-                        "name": "investor",
-                        "type": "address"
-                    },
-                    {
-                        "indexed": true,
-                        "internalType": "uint256",
-                        "name": "projectId",
-                        "type": "uint256"
-                    },
-                    {
-                        "indexed": false,
-                        "internalType": "uint256",
-                        "name": "profit",
-                        "type": "uint256"
-                    }
-                ],
-                "name": "ProfitClaimed",
-                "type": "event"
-            },
-            {
-                "anonymous": false,
-                "inputs": [
-                    {
-                        "indexed": false,
-                        "internalType": "uint256",
-                        "name": "projectId",
-                        "type": "uint256"
-                    },
-                    {
-                        "indexed": false,
-                        "internalType": "string",
-                        "name": "name",
-                        "type": "string"
-                    },
-                    {
-                        "indexed": false,
-                        "internalType": "uint256",
-                        "name": "goal",
-                        "type": "uint256"
-                    },
-                    {
-                        "indexed": false,
-                        "internalType": "uint256",
-                        "name": "deadline",
-                        "type": "uint256"
-                    }
-                ],
-                "name": "ProjectCreated",
-                "type": "event"
-            },
-            {
-                "inputs": [],
-                "name": "getAllProjects",
-                "outputs": [
-                    {
-                        "internalType": "string",
-                        "name": "",
-                        "type": "string"
-                    }
-                ],
-                "stateMutability": "view",
-                "type": "function"
-            },
-            {
-                "inputs": [],
-                "name": "numberOfProjects",
-                "outputs": [
-                    {
-                        "internalType": "uint256",
-                        "name": "",
-                        "type": "uint256"
-                    }
-                ],
-                "stateMutability": "view",
-                "type": "function"
-            },
-            {
-                "inputs": [
-                    {
-                        "internalType": "uint256",
-                        "name": "",
-                        "type": "uint256"
-                    }
-                ],
-                "name": "projects",
-                "outputs": [
-                    {
-                        "internalType": "uint256",
-                        "name": "id",
-                        "type": "uint256"
-                    },
-                    {
-                        "internalType": "address",
-                        "name": "ownerAddress",
-                        "type": "address"
-                    },
-                    {
-                        "internalType": "string",
-                        "name": "name",
-                        "type": "string"
-                    },
-                    {
-                        "internalType": "uint256",
-                        "name": "fundingGoal",
-                        "type": "uint256"
-                    },
-                    {
-                        "internalType": "uint256",
-                        "name": "totalNFTs",
-                        "type": "uint256"
-                    },
-                    {
-                        "internalType": "uint256",
-                        "name": "deadline",
-                        "type": "uint256"
-                    },
-                    {
-                        "internalType": "uint256",
-                        "name": "amountCollected",
-                        "type": "uint256"
-                    }
-                ],
-                "stateMutability": "view",
-                "type": "function"
-            }
-        ];
+        let abi = Constants.ABI_SMART_CONTRACT;
         let tempcontract = new ethers.Contract(contractAddress, abi, tempsigner);
         setContract(tempcontract);
     }
@@ -266,6 +88,10 @@ export const Home = () => {
         console.log(p);
     };
 
+    const contributeToProject = async (event) => {
+
+    };
+
     return (
         <div>
             {walletAddress ? (
@@ -275,43 +101,69 @@ export const Home = () => {
             )}
             <button onClick={ss}>show signer</button>
 
-            <h1>Create a Project</h1>
-            <form onSubmit={createProject}>
-                <label>
-                    Name:
-                    <input
-                        type="text"
-                        name="name"
-                        value={newProject.name}
-                        onChange={handleInputChange}
-                    />
-                </label>
-                <br />
-                <label>
-                    Funding Goal:
-                    <input
-                        type="number"
-                        name="fundingGoal"
-                        value={newProject.fundingGoal}
-                        onChange={handleInputChange}
-                    />
-                </label>
-                <br />
-                <label>
-                    Deadline:
-                    <input
-                        type="date"
-                        name="deadline"
-                        value={newProject.deadline}
-                        onChange={handleInputChange}
-                    />
-                </label>
-                <br />
-                <button type="submit">Create Project</button>
-            </form>
-
+            <table>
+                <td>
+                    <h1>Contribute to project: </h1>
+                    <form onSubmit={contributeToProject}>
+                        <label>
+                            id:
+                            <input
+                                type="number"
+                                name="id"
+                                value={contributeToProjectObj.id}
+                                onChange={handleInputChangeOfContribute}
+                            />
+                        </label>
+                        <br/>
+                        <label>
+                            Amount To Invest:
+                            <input
+                                type="number"
+                                name="amount"
+                                value={contributeToProjectObj.amount}
+                                onChange={handleInputChangeOfContribute}
+                            />
+                        </label>
+                    </form>
+                </td>
+                <td>
+                    <h1>Create a Project</h1>
+                    <form onSubmit={createProject}>
+                        <label>
+                            Name:
+                            <input
+                                type="text"
+                                name="name"
+                                value={newProject.name}
+                                onChange={handleInputChange}
+                            />
+                        </label>
+                        <br />
+                        <label>
+                            Funding Goal:
+                            <input
+                                type="number"
+                                name="fundingGoal"
+                                value={newProject.fundingGoal}
+                                onChange={handleInputChange}
+                            />
+                        </label>
+                        <br />
+                        <label>
+                            Deadline:
+                            <input
+                                type="date"
+                                name="deadline"
+                                value={newProject.deadline}
+                                onChange={handleInputChange}
+                            />
+                        </label>
+                        <br />
+                        <button type="submit">Create Project</button>
+                    </form>
+                    </td>
+            </table>
             <hr />
-
             <h1>All Projects</h1>
             {projects.map((project, index) => (
                 <div key={index}>
