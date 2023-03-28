@@ -2,6 +2,14 @@
   text-align: center;
 }
 
+body {
+  background-color: #a1b0cd;
+  color: white;
+  padding: 40px;
+  font-family: Sans-Serif;
+  text-align: center;
+}
+
 .App-logo {
   height: 40vmin;
   pointer-events: none;
