@@ -11,7 +11,8 @@ export const Home = () => {
     });
     const [walletAddress, setWalletAddress] = useState("");
     const [provider, setProvider] = useState({});
-    const [contract, setContract] = useState({});
+    const [contractERC20, setContractERC20] = useState({});
+    const [contractERC1155, setContractERC1155] = useState({});
     const [signer, setSigner] = useState({});
     const [newProject, setNewProject] = useState({
         name: "",
@@ -36,14 +37,19 @@ export const Home = () => {
 
     const initContract = async () => {
         console.log("init contact");
-        let tempprovider = new ethers.providers.Web3Provider(window.ethereum);
+        // let tempprovider = new ethers.providers.Web3Provider(window.ethereum);
+        let tempprovider = new ethers.providers.JsonRpcProvider("http://127.0.0.1:8545/");
         setProvider(tempprovider);
         let tempsigner = tempprovider.getSigner();
         setSigner(tempsigner);
-        let contractAddress = "0x1330DbB5F0D790e06316A456949535722740c54d";
-        let abi = Constants.ABI_SMART_CONTRACT;
-        let tempcontract = new ethers.Contract(contractAddress, abi, tempsigner);
-        setContract(tempcontract);
+        let contractAddressERC20 = process.env.REACT_APP_ERC20_ADDRESS;
+        let contractAddressERC1155 = process.env.REACT_APP_ERC1155_ADDRESS;
+        let abi_erc20 = Constants.ABI_ERC20;
+        let abi_erc1155 = Constants.ABI_ERC1155;
+        let tempcontractERC20 = new ethers.Contract(contractAddressERC20, abi_erc20, tempsigner);
+        let tempcontractERC1155 = new ethers.Contract(contractAddressERC1155, abi_erc1155, tempsigner);
+        setContractERC20(tempcontractERC20);
+        setContractERC1155(tempcontractERC1155);
     }
 
     const connectToMM = (event) => {
@@ -60,10 +66,11 @@ export const Home = () => {
     };
 
     const ss = async (event) => {
-        let nop = await contract.numberOfProjects();
+        console.log(contractERC1155);
+        let nop = await contractERC1155.projectId();
         const pp = [];
         for (let i = 0; i < nop; i++) {
-            const p = await contract.projects(i);
+            const p = await contractERC1155.projects(i);
             const newproject = {
                 name: p.name,
                 fundingGoal: BigNumber(p['fundingGoal']._hex).toString(),
@@ -72,6 +79,7 @@ export const Home = () => {
             pp.push(newproject);
         };
         setProjects([...projects, ...pp]);
+        console.log(projects);
     };
 
     const createProject = async (event) => {
@@ -84,12 +92,19 @@ export const Home = () => {
         });
         let deadline = new Date(newProject.deadline);
         deadline = Math.floor(deadline.getTime() / 1000);
-        const p = await contract.createProject(newProject.name, newProject.fundingGoal, 1, deadline);
+        const p = await contractERC1155.createProject(newProject.name, newProject.fundingGoal, deadline);
         console.log(p);
     };
 
     const contributeToProject = async (event) => {
-
+        event.preventDefault();
+        setContributeToProjectObj(contributeToProjectObj);
+        setContributeToProjectObj({
+            id: "",
+            amount: "",
+        });
+        const p = await contractERC1155.createProject(contributeToProjectObj.id, contributeToProjectObj.amount);
+        console.log(p);
     };
 
     return (
@@ -124,6 +139,8 @@ export const Home = () => {
                                 onChange={handleInputChangeOfContribute}
                             />
                         </label>
+                        <br/>
+                        <button type="submit">Contribute to project</button>
                     </form>
                 </td>
                 <td>
