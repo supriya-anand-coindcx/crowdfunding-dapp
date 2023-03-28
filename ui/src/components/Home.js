@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { ethers, providers } from "ethers";
+import { ethers } from "ethers";
 import BigNumber from "bignumber.js";
 import * as Constants from "../constants/index";
 
@@ -11,16 +11,18 @@ export const Home = () => {
     });
     const [balance, setBalance] = useState("");
     const [walletAddress, setWalletAddress] = useState("");
+    const [adminWallet, setAdminWallet] = useState("");
     const [provider, setProvider] = useState({});
+    const [adminProvider, setAdminProvider] = useState("");
     const [contractERC20, setContractERC20] = useState({});
     const [contractERC1155, setContractERC1155] = useState({});
     const [signer, setSigner] = useState({});
+    const [adminSigner, setAdminSigner] = useState("");
     const [newProject, setNewProject] = useState({
         name: "",
         fundingGoal: "",
         deadline: "",
     });
-
 
     const handleInputChange = (event) => {
         setNewProject({
@@ -38,19 +40,24 @@ export const Home = () => {
 
     const initContract = async () => {
         console.log("init contact");
-        // let tempprovider = new ethers.providers.Web3Provider(window.ethereum);
-        let tempprovider = new ethers.providers.JsonRpcProvider("http://127.0.0.1:7545/");
-        setProvider(tempprovider);
-        let tempsigner = tempprovider.getSigner();
-        setSigner(tempsigner);
+        let tempproviderUser = new ethers.providers.Web3Provider(window.ethereum);
+        let tempproviderAdmin = new ethers.providers.JsonRpcProvider("http://127.0.0.1:7545/");
+        let aw = new ethers.Wallet(process.env.REACT_APP_DEPLOYMENT_ADDRESS_PRIVATE_KEY, tempproviderAdmin);
+        setAdminWallet(aw);
+        setProvider(tempproviderUser);
+        setAdminProvider(tempproviderAdmin);
+        let tempsignerUser = tempproviderUser.getSigner();
+        let tempsignerAdmin = tempproviderAdmin.getSigner();
+        setSigner(tempsignerUser);
+        setAdminSigner(tempsignerAdmin);
         let contractAddressERC20 = process.env.REACT_APP_ERC20_ADDRESS;
         let contractAddressERC1155 = process.env.REACT_APP_ERC1155_ADDRESS;
         let abi_erc20 = Constants.ABI_ERC20;
         let abi_erc1155 = Constants.ABI_ERC1155;
-        let tempcontractERC20 = new ethers.Contract(contractAddressERC20, abi_erc20, tempsigner);
-        let tempcontractERC1155 = new ethers.Contract(contractAddressERC1155, abi_erc1155, tempsigner);
-        setContractERC20(tempcontractERC20);
-        setContractERC1155(tempcontractERC1155);
+        let tempcontractERC20User = new ethers.Contract(contractAddressERC20, abi_erc20, tempsignerUser);
+        let tempcontractERC1155User = new ethers.Contract(contractAddressERC1155, abi_erc1155, tempsignerUser);
+        setContractERC20(tempcontractERC20User);
+        setContractERC1155(tempcontractERC1155User);
     }
 
     const connectToMM = (event) => {
@@ -104,22 +111,24 @@ export const Home = () => {
         //     id: "",
         //     amount: "",
         // });
-        const allo = await contractERC20.allowance(walletAddress, process.env.REACT_APP_ERC1155_ADDRESS);
-        console.log(BigNumber(allo._hex).toString());
         const p = await contractERC1155.contribute(contributeToProjectObj.id, contributeToProjectObj.amount);
         console.log(p);
     };
 
-    const aprroveMoney = async (event) => { 
-        const p = await contractERC20.approve(process.env.REACT_APP_ERC1155_ADDRESS, 4000);
-        const p2 = await contractERC20.balanceOf(walletAddress);
-        const p3 = await contractERC20.allowance(walletAddress, process.env.REACT_APP_ERC1155_ADDRESS);
-        console.log(p, BigNumber(p2._hex).toString(), p3,  BigNumber(p3._hex).toString());
+    const aprroveMoney = async (event) => {
+        console.log(walletAddress, " -> ", signer);
+        const p = await contractERC20.connect(signer).approve(process.env.REACT_APP_ERC1155_ADDRESS, 10);
+        console.log(p, " ", BigNumber(p._hex).toString());
     }
 
     const transfererc20 = async (event) => {
-        const p = await contractERC20.transfer(walletAddress, 5000);
+        const p = await contractERC20.connect(adminWallet).transfer(walletAddress, 5000);
         console.log(p);
+    }
+
+    const checkallowance = async (event) => {
+        const p = await contractERC20.connect(walletAddress).allowance(walletAddress, process.env.REACT_APP_ERC1155_ADDRESS);
+        console.log(p, " ", BigNumber(p._hex).toString());
     }
 
     const showbalance = async (event) => {
@@ -140,6 +149,7 @@ export const Home = () => {
             ) : (
                 <button onClick={showbalance}>show balance</button>
             )}
+            <button onClick={checkallowance}>Check allowance</button>
             <button onClick={transfererc20}>transfer er20 to account</button>
             <button onClick={ss}>show signer</button>
             <button onClick={aprroveMoney}>approve money</button>
