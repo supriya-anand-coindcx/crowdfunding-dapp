@@ -8,6 +8,12 @@ module.exports = {
   solidity: '0.8.10',
   networks: {
     hardhat: {},
+    ganache: {
+      url: "http://127.0.0.1:7545",
+      accounts: [
+        `0x9f29d5add59c0a34d10509f63d50e34270c605c6913ebdeac2512b62367992fa`,
+      ],
+    },
     mainnet: {
       url: process.env.MAINNET_RPC_URL || '',
       accounts: process.env.PRIVATE_KEY_MAINNET
