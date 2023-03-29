@@ -24,6 +24,7 @@ export const Home = () => {
         fundingGoal: "",
         deadline: "",
     });
+    const [ccheckallowance, setCcheckAllowance] = useState("");
 
     const handleInputChange = (event) => {
         setNewProject({
@@ -76,13 +77,14 @@ export const Home = () => {
 
     const ss = async (event) => {
         // GET PROJECTS and INVESTMENTS
-        console.log(contractERC1155);
+        setProjects([]);
         let nop = await contractERC1155.projectId();
         const pp = [];
         const inv = [];
         for (let i = 0; i < nop; i++) {
             const p = await contractERC1155.projects(i);
             const newproject = {
+                id: BigNumber(p['id']._hex).toString(),
                 name: p.name,
                 fundingGoal: BigNumber(p['fundingGoal']._hex).toString(),
                 deadline: BigNumber(p['deadline']._hex).toString(),
@@ -96,19 +98,16 @@ export const Home = () => {
                 claimed: invv['2'].toString(),
                 active: invv['3'].toString()
             }
-            // console.log(newinv);
-            if(BigNumber(invv['0']._hex).toString()!=0) inv.push(newinv);
+            inv.push(newinv);
         };
-        await setProjects([...projects, ...pp]);
-        console.log(inv);
+        await setProjects([...pp]);
         await setInvestment(inv);
-        console.log(investment);
     };
 
     useEffect(() => {
         setInvestment(investment);
-      }, [investment]);
-
+        setProjects(projects);
+    }, [investment, projects]);
 
     const createProject = async (event) => {
         event.preventDefault();
@@ -121,61 +120,73 @@ export const Home = () => {
         let deadline = new Date(newProject.deadline);
         deadline = Math.floor(deadline.getTime() / 1000);
         const p = await contractERC1155.createProject(newProject.name,newProject.fundingGoal, deadline);
-        console.log(p);
+        console.log("create project : ", p);
     };
 
     const contributeToProject = async (event) => {
         event.preventDefault();
         setContributeToProjectObj(contributeToProjectObj);
-        // setContributeToProjectObj({
-        //     id: "",
-        //     amount: "",
-        // });
+        setContributeToProjectObj({
+            id: "",
+            amount: "",
+        });
         const p = await contractERC1155.contribute(contributeToProjectObj.id, contributeToProjectObj.amount);
-        console.log(p);
+        console.log("contribute to project : ",p);
     };
 
     const aprroveMoney = async (event) => {
-        console.log(walletAddress, " -> ", signer);
-        const p = await contractERC20.connect(signer).approve(process.env.REACT_APP_ERC1155_ADDRESS, 10);
-        console.log(p, " ", BigNumber(p._hex).toString());
+        event.preventDefault();
+        if(event.target[1].value){
+            const p = await contractERC20.connect(signer).approve(event.target[1].value, event.target[0].value);
+            console.log("approve money : ", p, " ", BigNumber(p._hex).toString());
+        } else {
+            const p = await contractERC20.connect(signer).approve(process.env.REACT_APP_ERC1155_ADDRESS, event.target[0].value);
+            console.log("approve money : ", p, " ", BigNumber(p._hex).toString());
+        }
     }
 
     const transfererc20 = async (event) => {
-        const p = await contractERC20.connect(adminWallet).transfer(walletAddress, 5000);
-        console.log(p);
+        event.preventDefault();
+        const p = await contractERC20.connect(adminWallet).transfer(event.target[0].value, event.target[1].value);
+        console.log("transfer erc20 : ", p);
     }
 
     const checkallowance = async (event) => {
         const p = await contractERC20.connect(walletAddress).allowance(walletAddress, process.env.REACT_APP_ERC1155_ADDRESS);
-        console.log(p, " ", BigNumber(p._hex).toString());
+        console.log("check allowance : ", p, " ", BigNumber(p._hex).toString());
+        setCcheckAllowance(BigNumber(p._hex).toString());
     }
 
     const showbalance = async (event) => {
-        console.log(walletAddress);
         const p2 = await contractERC20.balanceOf(walletAddress);
-        console.log(p2);
-        setBalance(BigNumber(p2._hex).toString())
+        setBalance(BigNumber(p2._hex).toString());
+        console.log("show balance : ", BigNumber(p2._hex).toString());
     }
+
+    const claim = async (event) => {
+        event.preventDefault();
+        const p = await contractERC1155.claim(event.target[0].value);
+        console.log("claim : ", p);
+    }
+
+    const changeDeadline = async (event) => {
+        event.preventDefault();
+        let deadline = new Date(event.target[1].value);
+        deadline = Math.floor(deadline.getTime() / 1000);
+        const cd = await contractERC1155.changeDeadline(event.target[0].value, deadline);
+        console.log("change deadline : ", cd);
+    };
+
     return (
         <div>
-            {walletAddress ? (
-                <p>Wallet Address: {walletAddress}</p>
-            ) : (
-                <button onClick={connectToMM}>Connect to Metamask</button>
-            )}
-            {balance ? (
-                <p>balance Address: {balance}</p>
-            ) : (
-                <button onClick={showbalance}>show balance</button>
-            )}
-            <button onClick={checkallowance}>Check allowance</button>
-            <button onClick={transfererc20}>transfer er20 to account</button>
-            <button onClick={ss}>show signer</button>
-            <button onClick={aprroveMoney}>approve money</button>
-            <table>
+            <div><button onClick={connectToMM}>Connect to Metamas : <p>{walletAddress}</p></button></div>
+            <div><button onClick={showbalance}>show balance : <p>{balance}</p></button></div>
+            <div><button onClick={checkallowance}>Check Allowance : <p>{ccheckallowance}</p></button></div>
+            <hr/>
+            <table align="center" border="1px solid black">
+                <tr>
                 <td>
-                    <h1>Contribute to project: </h1>
+                    <h1>Contribute to project </h1>
                     <form onSubmit={contributeToProject}>
                         <label>
                             id:
@@ -235,15 +246,99 @@ export const Home = () => {
                         <br />
                         <button type="submit">Create Project</button>
                     </form>
-                    </td>
+                </td>
+                </tr>
+                <tr>
+                <td>
+                    <h1>change deadline</h1>
+                    <form onSubmit={changeDeadline}>
+                        <label>
+                            ID:
+                            <input
+                                type="text"
+                                name="id"
+                            />
+                        </label>
+                        <label>
+                            ID:
+                            <input
+                                type="date"
+                                name="updatedate"
+                            />
+                        </label>
+                        <button type="submit">claim</button>
+                    </form>
+                </td>
+                <td>
+                    <h1>Claim</h1>
+                    <form onSubmit={claim}>
+                        <label>
+                            ID:
+                            <input
+                                type="text"
+                                name="id"
+                            />
+                        </label>
+                        <button type="submit">claim</button>
+                    </form>
+                </td>
+                </tr>
+                <tr>
+                <td>
+                    <h1>Trasfer ERC20 To from admin </h1>
+                    <form onSubmit={transfererc20}>
+                        <label>
+                            to:
+                            <input
+                                type="text"
+                                name="to"
+                            />
+                        </label>
+                        <br/>
+                        <label>
+                            Amount To transfer:
+                            <input
+                                type="number"
+                                name="amount"
+                            />
+                        </label>
+                        <br/>
+                        <button type="submit">Transfer</button>
+                    </form>
+                </td>
+                <td>
+                    <h1>Approve money: </h1>
+                    <form onSubmit={aprroveMoney}>
+                        <label>
+                            Amount:
+                            <input
+                                type="number"
+                                name="amount"
+                            />
+                        </label>
+                        <br/>
+                        <label>
+                            Spender:
+                            <input
+                                type="text"
+                                name="spender"
+                            />
+                        </label>
+                        <br/>
+                        <button type="submit">Approve</button>
+                    </form>
+                </td>
+                </tr>
             </table>
             <hr />
-            <table>
+            <button onClick={ss}>Fetch Projects and Investments</button>
+            <table align="center" border="1px solid black">
                 <td>
                     <h1>All Projects:</h1>
                     {projects.map((project, index) => (
                         <div key={index}>
                             <h2>Name: {project.name}</h2>
+                            <h2>ID: {project.id}</h2>
                             <p>Funding Goal: ${project.fundingGoal}</p>
                             <p>Deadline: {project.deadline}</p>
                         </div>
@@ -251,7 +346,6 @@ export const Home = () => {
                 </td>
                 <td>
                     <h1>All Investments:</h1>
-                    <h2>investment</h2>
                     {investment.map((inv, index) => (
                         <div key={index}>
                             <h2>Amount: {inv.amount}</h2>
