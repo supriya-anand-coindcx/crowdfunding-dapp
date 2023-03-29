@@ -78,13 +78,13 @@ contract CustomCrowdfunding is ERC1155, Ownable {
         uint256 balance = projects[id].balances[msg.sender];
         require(balance > 0, "No contribution to refund.");
         for (uint i=0; i<projects[id].totalInvestors; i++){
-            if(projects[id].ii[i].investor == msg.sender && projects[id].ii[i].active && projects[id].ii[i].claimed==false){
-                require(block.timestamp < (projects[id].ii[i].timeOfInv + 5 minutes), "Cannot Withdraw past 24 hrs");
-                projects[id].ii[i].active = false;
-                projects[id].ii[i].claimed = true;
-                token.transfer(msg.sender, projects[id].ii[i].amount);
-                _burn(msg.sender, id, projects[id].ii[i].amount);
-                projects[id].ii[i].amount = 0;
+            if(projects[id].investor[i].investor == msg.sender && projects[id].investor[i].active && projects[id].investor[i].claimed==false){
+                require(block.timestamp < (projects[id].investor[i].timeOfInv + 5 minutes), "Cannot Withdraw past 24 hrs");
+                projects[id].investor[i].active = false;
+                projects[id].investor[i].claimed = true;
+                token.transfer(msg.sender, projects[id].investor[i].amount);
+                _burn(msg.sender, id, projects[id].investor[i].amount);
+                projects[id].investor[i].amount = 0;
                 projects[id].totalRaised-=projects[id].balances[msg.sender];
                 projects[id].balances[msg.sender] = 0;
             }
