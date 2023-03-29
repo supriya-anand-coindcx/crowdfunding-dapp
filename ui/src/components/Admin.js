@@ -313,12 +313,7 @@ export const Admin = () => {
       </div>
       <hr />
       <div className='MyContainer'>
-        <button
-          className='ExpandableButton ExpandableButton--blue'
-          onClick={ss}
-        >
-          All Projects and Investments
-        </button>
+        <button onClick={ss}>All Projects and Investments</button>
       </div>
       <div className='container'>
         <table className='table'>
