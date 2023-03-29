@@ -6,9 +6,21 @@ table{
   text-align: center;
 }
 
+h1 {
+  color:rgb(203, 216, 168);
+}
+
+p{
+  color:#61dafb;
+}
+
+input {
+  background-color: rgb(188, 214, 219);
+}
+
 body {
   background-color: #a1b0cd;
-  color: white;
+  color: rgb(9, 8, 8);
   padding: 40px;
   font-family: Sans-Serif;
   text-align: center;
