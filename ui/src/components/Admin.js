@@ -181,7 +181,6 @@ export const Admin = () => {
         <div>
             <div><button onClick={connectToMM}>Connect to Metamas : <p>{walletAddress}</p></button></div>
             <div><button onClick={showbalance}>show balance : <p>{balance}</p></button></div>
-            <div><button onClick={checkallowance}>Check Allowance : <p>{ccheckallowance}</p></button></div>
             <hr/>
             <table align="center" border="1px solid black">
                 <tr>
