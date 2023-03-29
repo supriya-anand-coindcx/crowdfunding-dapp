@@ -1,6 +1,6 @@
 require('@nomicfoundation/hardhat-toolbox');
+require("@nomiclabs/hardhat-ethers");
 
-require('@nomiclabs/hardhat-waffle');
 const dotenv = require('dotenv');
 dotenv.config();
 
@@ -8,6 +8,12 @@ module.exports = {
   solidity: '0.8.10',
   networks: {
     hardhat: {},
+    ganache: {
+      url: "http://127.0.0.1:7545",
+      accounts: [
+        `0x779cb93533691cbae17f82c7bf37bc491de91be1afb8e5c756a9582186687b77`,
+      ],
+    },
     mainnet: {
       url: process.env.MAINNET_RPC_URL || '',
       accounts: process.env.PRIVATE_KEY_MAINNET
