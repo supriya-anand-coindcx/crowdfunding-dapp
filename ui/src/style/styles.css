@@ -1,0 +1,118 @@
+.MyContainer {
+  display: flex;
+  flex-direction: column;
+}
+
+.MyContainer > div {
+  margin-bottom: 10px;
+}
+
+.ExpandableButton {
+  display: inline-block;
+  padding: 10px 20px;
+  font-size: 16px;
+  font-weight: bold;
+  text-align: center;
+  border-radius: 15px;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.ExpandableButton:hover {
+  background-color: #ccc;
+}
+
+.ExpandableButton--blue {
+  color: #fff;
+  background-color: #1d76dc;
+  border-color: #828588;
+}
+
+.ExpandableButton--blue:hover {
+  background-color: #0066cc;
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 20px auto;
+  max-width: 800px;
+  margin: 0 auto;
+  border: 2px solid #333;
+  font-size: 16px;
+}
+
+th,
+td {
+  text-align: left;
+  padding: 8px;
+  border: 1px solid #333;
+}
+
+th {
+  background-color: #eee;
+}
+
+h1 {
+  margin-top: 0;
+  font-size: 24px;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 20px;
+}
+
+label {
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+}
+
+input {
+  padding: 8px;
+  font-size: 16px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  margin-bottom: 10px;
+}
+
+button {
+  padding: 8px;
+  font-size: 16px;
+  font-weight: bold;
+  border: none;
+  background-color: #007bff;
+  color: #fff;
+  border-radius: 15px;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #0069d9;
+}
+
+.styled-heading {
+  font-size: 24px;
+  font-weight: bold;
+  color: #333;
+  text-align: center;
+  text-transform: uppercase;
+  margin-bottom: 20px;
+}
+
+.styled-heading-main {
+  font-size: 40px;
+  font-weight: bold;
+  color: rgb(80, 80, 82);
+  text-align: center;
+  text-transform: uppercase;
+  margin-bottom: 20px;
+}
+
+.style-label {
+  display: flex;
+  align-items: center;
+}

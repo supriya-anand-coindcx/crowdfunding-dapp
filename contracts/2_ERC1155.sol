@@ -136,6 +136,7 @@ contract CustomCrowdfunding is ERC1155, Ownable {
             uint256 balance = projects[id].balances[sender];
             require(balance > 0, "No contribution to refund.");
 
+            projects[id].totalRaised -= projects[id].balances[sender];
             projects[id].balances[sender] = 0;
             token.transfer(sender, balance);
             _burn(sender, id, balance);
