@@ -129,9 +129,9 @@ contract CustomCrowdfunding is ERC1155, Ownable {
         emit Contribution(id, msg.sender, amount);
     }
 
-    //cclaim is a private function to return the ERC tokens back to the investors along with the profit earned
+    //internalClaim is a private function to return the ERC tokens back to the investors along with the profit earned
     //While returnig the ERC20 token, the function makes sure to burn the user's share of ERC1155.
-    function cclaim(uint256 id, address sender) private {
+    function internalClaim(uint256 id, address sender) private {
         require(projects[id].deadline <= block.timestamp, "Crowdfunding deadline has not yet passed.");
 
         if (projects[id].totalRaised >= projects[id].fundingGoal) {
@@ -176,11 +176,11 @@ contract CustomCrowdfunding is ERC1155, Ownable {
     }
 
     //Given the id of the project, the investor can claim for his ERC20 tokens back
-    //The claimFunds function internally calls the private function cclaim(uint256 id, address sender) which puts
+    //The claimFunds function internally calls the private function internalClaim(uint256 id, address sender) which puts
     //the checks on the investment of the investor as well as the project deadline.
     //ERC20 tokens can only be claimed once the project deadline is met
     function claimFunds(uint256 id) public {
-        cclaim(id, msg.sender);
+        internalClaim(id, msg.sender);
     }
     
     //calculateProfit function returns the amount of profit that the investors are supposed to get
