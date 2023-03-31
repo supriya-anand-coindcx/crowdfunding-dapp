@@ -47,9 +47,9 @@ contract CustomCrowdfunding is ERC1155, Ownable {
 
     CustomCrowdfundingToken public token;
 
-    constructor(address tokenAddress) ERC1155("") {
-        name = "PROJECT1155";
-        symbol = "PJ1155";
+    constructor(address tokenAddress, string memory __name, string memory __symbol) ERC1155("") {
+        name = __name;
+        symbol = __symbol;
         token = CustomCrowdfundingToken(tokenAddress);
     }
 
@@ -59,11 +59,7 @@ contract CustomCrowdfunding is ERC1155, Ownable {
     event Claim(uint256 indexed id, address indexed sender, uint256 amount);
     event Refund(uint256 indexed id, address indexed sender, uint256 amount);
 
-    // View function to get the details of a project when the projectId is provided
-    function getProject(uint256 id) public view returns(string memory, uint256, uint256, bool, uint256, uint256) {
-        return (projects[id].name, projects[id].fundingGoal, projects[id].deadline, projects[id].goalReached, projects[id].totalRaised, projects[id].totalInvestors);
-    }
-
+    // View function to fetch investments
     function getInvestment(uint256 id) public view returns(uint256, uint256, bool, bool) {
         for(uint i=0; i<projects[id].totalInvestors; i++){
             if(projects[id].investor[i].investorAddress == msg.sender){
@@ -87,15 +83,17 @@ contract CustomCrowdfunding is ERC1155, Ownable {
                 require(block.timestamp < (projects[id].investor[i].timeOfInv + 5 minutes), "Cannot Withdraw past 24 hrs");
                 projects[id].investor[i].active = false;
                 projects[id].investor[i].claimed = true;
-                token.transfer(msg.sender, projects[id].investor[i].amount);
-                _burn(msg.sender, id, projects[id].investor[i].amount);
+                uint256 tempAmount = projects[id].investor[i].amount;
                 projects[id].investor[i].amount = 0;
                 projects[id].totalRaised-=projects[id].balances[msg.sender];
                 projects[id].balances[msg.sender] = 0;
+                token.transfer(msg.sender, tempAmount);
+                _burn(msg.sender, id, tempAmount);
+                break;
             }
         }
     }
-
+    
     // The createProject function allows the fundraisers to add a project for crowdfunding and once a project is created, an ID is returned
     function createProject(string memory _name, uint256 _fundingGoal, uint256 _deadline) public onlyOwner returns (uint256) {
         uint256 id = projectId;
@@ -116,8 +114,6 @@ contract CustomCrowdfunding is ERC1155, Ownable {
     function contribute(uint256 id, uint256 amount) public {
         require(projects[id].deadline > block.timestamp, "Crowdfunding deadline has passed.");
         require(amount > 0, "Contribution amount must be greater than 0.");
-        require(token.transferFrom(msg.sender, address(this), amount), "Failed to transfer token from sender.");
-        _mint(msg.sender, id, amount, "x0123"); //reciept
         projects[id].balances[msg.sender] += amount;
         projects[id].totalRaised += amount;
         bool found=false;
@@ -128,12 +124,15 @@ contract CustomCrowdfunding is ERC1155, Ownable {
                 projects[id].investor[i].claimed = false;
                 projects[id].investor[i].timeOfInv = block.timestamp;
                 projects[id].investor[i].amount += amount;
+                break;
             }
         }
         if(!found) { 
             projects[id].investor.push(Investor({ investorAddress: msg.sender, amount: amount, claimed: false, timeOfInv: block.timestamp, active:true }));
             projects[id].totalInvestors++;
         }
+        require(token.transferFrom(msg.sender, address(this), amount), "Failed to transfer token from sender.");
+        _mint(msg.sender, id, amount, "x0123"); //reciept
         emit Contribution(id, msg.sender, amount);
     }
 
@@ -149,8 +148,6 @@ contract CustomCrowdfunding is ERC1155, Ownable {
             require(balance > 0, "No contribution to claim.");
 
             uint256 payout = calculateProfit(balance);
-            token.transfer(sender, payout);
-            _burn(sender, id, balance);
 
             projects[id].totalRaised -= projects[id].balances[sender];
             projects[id].goalReached = true;
@@ -163,6 +160,8 @@ contract CustomCrowdfunding is ERC1155, Ownable {
                     projects[id].investor[i].amount = 0;
                 }
             }
+            token.transfer(sender, payout);
+            _burn(sender, id, balance);
             emit Claim(id, sender, payout);
         } else {
             uint256 balance = projects[id].balances[sender];
@@ -170,8 +169,6 @@ contract CustomCrowdfunding is ERC1155, Ownable {
 
             projects[id].totalRaised -= projects[id].balances[sender];
             projects[id].balances[sender] = 0;
-            token.transfer(sender, balance);
-            _burn(sender, id, balance);
 
             for(uint i = 0 ; i<projects[id].totalInvestors; i++) {
                 if(!projects[id].investor[i].claimed && projects[id].investor[i].investorAddress==sender){
@@ -180,7 +177,8 @@ contract CustomCrowdfunding is ERC1155, Ownable {
                     projects[id].investor[i].amount = 0;
                 }
             }
-
+            token.transfer(sender, balance);
+            _burn(sender, id, balance);
             emit Refund(id, sender, balance);
         }
     }
